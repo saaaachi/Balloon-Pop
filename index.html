@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Balloon Pop - 第27弾</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #e1f5fe; font-family: sans-serif; touch-action: none; }
+        #ad-top, #ad-bottom { position: fixed; left: 0; width: 100%; height: 150px; background: #333; z-index: 100; display: flex; align-items: center; justify-content: center; }
+        #ad-top { top: 0; } #ad-bottom { bottom: 0; }
+        iframe { border: none; width: 100%; height: 150px; }
+        canvas { display: block; margin-top: 150px; background: #e1f5fe; }
+        #ui { position: absolute; top: 160px; left: 0; width: 100%; text-align: center; color: #0288d1; font-size: 24px; font-weight: bold; pointer-events: none; }
+        #startScreen { position: absolute; top: 150px; left: 0; width: 100%; height: calc(100vh - 300px); background: rgba(255,255,255,0.9); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 50; }
+        #goButton { padding: 15px 45px; font-size: 24px; background: #03a9f4; border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="ad-top"><iframe src="ad.html"></iframe></div>
+    <div id="ad-bottom"><iframe src="ad.html"></iframe></div>
+    <div id="startScreen"><h1>Balloon Pop</h1><p id="targetText">赤い風船だけを割ってね！🎈</p><button id="goButton">スタート！</button></div>
+    <div id="ui">POPPED: 0</div>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight - 300;
+        let score = 0, gameActive = false, balloons = [];
+        const colors = ["red", "blue", "yellow", "green"];
+        let targetColor = "red";
+
+        document.getElementById("goButton").onclick = () => {
+            document.getElementById("startScreen").style.display = "none";
+            gameActive = true; score = 0; balloons = []; spawnBalloon(); update();
+        };
+
+        function spawnBalloon() {
+            if(!gameActive) return;
+            balloons.push({ x: Math.random()*(canvas.width-50)+25, y: canvas.height+50, color: colors[Math.floor(Math.random()*4)], speed: 2+(score/10) });
+            setTimeout(spawnBalloon, 600 - Math.min(score*5, 300));
+        }
+
+        window.addEventListener("touchstart", (e) => {
+            if(!gameActive) return;
+            const tx = e.touches[0].clientX; const ty = e.touches[0].clientY - 150;
+            for(let i=balloons.length-1; i>=0; i--) {
+                let b = balloons[i];
+                let d = Math.sqrt((tx-b.x)**2 + (ty-b.y)**2);
+                if(d < 40) {
+                    if(b.color === targetColor) { score++; balloons.splice(i,1); document.getElementById("ui").innerText = "POPPED: " + score; }
+                    else { gameOver(); }
+                    return;
+                }
+            }
+        });
+
+        function update() {
+            if(!gameActive) return;
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            balloons.forEach((b, i) => {
+                b.y -= b.speed;
+                ctx.fillStyle = b.color;
+                ctx.beginPath(); ctx.arc(b.x, b.y, 30, 0, Math.PI*2); ctx.fill();
+                if(b.y < -50) { 
+                    if(b.color === targetColor) gameOver(); // ターゲットを逃しても終了
+                    else balloons.splice(i, 1);
+                }
+            });
+            requestAnimationFrame(update);
+        }
+
+        function gameOver() { gameActive = false; alert("ミス！ SCORE: " + score); location.reload(); }
+        setInterval(() => { const fs = document.querySelectorAll('iframe'); fs.forEach(f => { const s = f.src; f.src = "about:blank"; setTimeout(() => f.src = s, 100); }); }, 30000);
+    </script>
+</body>
+</html>
