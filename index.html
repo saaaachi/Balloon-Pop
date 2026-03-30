@@ -3,87 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Balloon Pop - v26.2</title>
+    <title>Balloon Pop - Max Revenue</title>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1299640300068792" crossorigin="anonymous"></script>
     <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; overflow: hidden; background: #e1f5fe; font-family: sans-serif; touch-action: none; position: fixed; width: 100%; height: 100%; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; overflow: hidden; background: #e1f5fe; font-family: 'Helvetica Neue', sans-serif; touch-action: none; position: fixed; width: 100%; height: 100%; }
         
-        #ad-top, #ad-bottom { position: fixed; left: 0; width: 100%; height: 150px; background: #333; z-index: 100; display: flex; align-items: center; justify-content: center; }
-        #ad-top { top: 0; border-bottom: 1px solid #444; } 
-        #ad-bottom { bottom: 0; border-top: 1px solid #444; }
-        iframe { border: none; width: 100%; height: 150px; background: #333; }
+        /* 上下の広告枠 (150px固定：視認性を高めてクリック率UP) */
+        #ad-top, #ad-bottom { position: fixed; left: 0; width: 100%; height: 150px; background: #01579b; z-index: 100; display: flex; align-items: center; justify-content: center; }
+        #ad-top { top: 0; border-bottom: 2px solid rgba(255,255,255,0.1); } 
+        #ad-bottom { bottom: 0; border-top: 2px solid rgba(255,255,255,0.1); }
 
         #game-outer { position: absolute; top: 150px; bottom: 150px; left: 0; right: 0; background: #e1f5fe; overflow: hidden; }
-        canvas { display: block; width: 100%; height: 100%; }
-        #ui { position: absolute; top: 10px; left: 0; width: 100%; text-align: center; color: #0288d1; font-size: 24px; font-weight: bold; pointer-events: none; z-index: 10; text-shadow: 1px 1px 0 white; }
+        canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+        #ui { position: absolute; top: 15px; left: 0; width: 100%; text-align: center; color: #0288d1; font-size: 26px; font-weight: bold; pointer-events: none; z-index: 10; text-shadow: 2px 2px 0 rgba(255,255,255,0.8); }
 
-        #menuScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.96); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; padding: 20px 0; }
-        #ad-middle-container { width: 320px; height: 100px; background: #eee; margin: 15px 0; display: none; justify-content: center; align-items: center; overflow: hidden; flex-shrink: 0; border: 1px solid #ddd; transition: opacity 0.3s; }
+        /* メニュー/リザルト画面 */
+        #menuScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 200; padding: 10px; }
+        
+        /* リザルト用 300x250 レクタングル広告 */
+        #ad-middle-box { width: 300px; height: 250px; background: #f0f0f0; margin: 15px 0; display: none; justify-content: center; align-items: center; overflow: hidden; border-radius: 12px; border: 1px solid #ddd; }
 
         .btn-group { display: flex; flex-direction: column; align-items: center; width: 100%; gap: 12px; }
-        #goButton { width: 240px; padding: 15px; font-size: 18px; background: #03a9f4; border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 4px #0288d1; transition: 0.2s; }
-        #goButton:disabled { background: #ccc; box-shadow: none; color: #888; cursor: default; }
-        .link-btn { width: 240px; padding: 12px; font-size: 15px; background: #9b59b6; border: none; border-radius: 50px; color: white; font-weight: bold; text-decoration: none; text-align: center; box-shadow: 0 4px #8e44ad; }
+        #goButton { width: 260px; padding: 18px; font-size: 20px; background: #03a9f4; border: none; border-radius: 50px; color: white; font-weight: bold; cursor: pointer; box-shadow: 0 5px #0288d1; transition: 0.2s; }
+        #goButton:active { transform: translateY(2px); box-shadow: 0 3px #0288d1; }
+        #goButton:disabled { background: #ccc; box-shadow: none; color: #888; opacity: 0.7; }
+        .link-btn { width: 260px; padding: 14px; font-size: 16px; background: #9b59b6; border: none; border-radius: 50px; color: white; font-weight: bold; text-decoration: none; text-align: center; box-shadow: 0 4px #8e44ad; }
 
-        /* 大広告用カウントダウン付きボタン */
-        #bigAdScreen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 3000; display: none; justify-content: center; align-items: center; }
-        .ad-frame-wrapper { width: 95%; height: 85%; position: relative; }
-        .ad-close-btn { 
-            position: absolute; top: -15px; right: -15px; 
-            color: white; font-size: 22px; font-weight: bold; 
-            cursor: pointer; background: rgba(0,0,0,0.8); 
-            width: 44px; height: 44px; border-radius: 50%; 
-            display: none; align-items: center; justify-content: center; 
-            z-index: 3100; border: 2px solid white; font-family: sans-serif;
-        }
+        /* インタースティシャル（全画面広告） */
+        #inter-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); z-index: 99999; align-items: center; justify-content: center; }
+        .inter-content { width: 330px; height: 330px; background: #fff; position: relative; border-radius: 8px; }
+        #close-ad-btn { position: absolute; top: -55px; right: 0; width: 45px; height: 45px; background: #333; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 2px solid #fff; cursor: pointer; }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
-    <div id="ad-top"><iframe id="frame-top" src="./ad.html?pos=top"></iframe></div>
+    <div id="ad-top">
+        <ins class="adsbygoogle" style="display:inline-block;width:320px;height:100px" data-ad-client="ca-pub-1299640300068792" data-ad-slot="3972022911"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
 
     <div id="game-outer">
-        <div id="ui">POPPED: 0</div>
+        <div id="ui">SCORE: 0</div>
         <canvas id="gameCanvas"></canvas>
 
         <div id="menuScreen">
-            <h1 id="menuTitle" style="color:#03a9f4; margin: 10px 0; font-size: 28px;">Balloon Pop</h1>
-            <p id="menuDesc" style="text-align: center; margin: 0 0 10px 0; font-size: 14px; color: #01579b;">赤い風船（🎈）だけを割ってね！</p>
-            <p id="bestScoreText" style="margin: 0 0 15px 0; color:#0288d1; font-weight: bold; font-size: 18px;">BEST: 0</p>
-            <div id="ad-middle-container">
-                <div id="im-8b492cea6667490da71c488bdcc7cfc8">
-                    <script async src="https://imp-adedge.i-mobile.co.jp/script/v1/spot.js?20220104"></script>
-                    <script>(window.adsbyimobile=window.adsbyimobile||[]).push({pid:84561,mid:590804,asid:1924211,type:"banner",display:"inline",elementid:"im-8b492cea6667490da71c488bdcc7cfc8"})</script>
-                </div>
+            <h1 id="menuTitle" style="color:#03a9f4; margin: 5px 0; font-size: 32px;">Balloon Pop</h1>
+            <p id="menuDesc" style="text-align: center; margin: 0 0 10px 0; font-size: 15px; color: #546e7a;">赤い風船だけを狙って！🎈</p>
+            <div id="bestScoreText" style="margin: 0 0 10px 0; color:#0288d1; font-weight: bold; font-size: 20px;">BEST: 0</div>
+            
+            <div id="ad-middle-box">
+                <ins class="adsbygoogle" style="display:inline-block;width:300px;height:250px" data-ad-client="ca-pub-1299640300068792" data-ad-slot="9050127185"></ins>
+                <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
             </div>
-            <div class="btn-group">
-                <button id="goButton">スタート！</button>
-                <a href="https://saaaachi.github.io/" class="link-btn">他のゲームはこちら</a>
-            </div>
-        </div>
 
-        <div id="bigAdScreen">
-            <div class="ad-frame-wrapper">
-                <div id="ad-close-btn" class="ad-close-btn" onclick="closeBigAd()"></div>
-                <iframe id="ad-large-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
+            <div class="btn-group">
+                <button id="goButton" onclick="startGame()">スタート！</button>
+                <a href="https://saaaachi.github.io/" class="link-btn">他のゲームで遊ぶ</a>
             </div>
         </div>
     </div>
 
-    <div id="ad-bottom"><iframe id="frame-bottom" src="./ad.html?pos=bottom"></iframe></div>
+    <div id="ad-bottom">
+        <ins class="adsbygoogle" style="display:inline-block;width:320px;height:100px" data-ad-client="ca-pub-1299640300068792" data-ad-slot="3972022911"></ins>
+        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+    </div>
+
+    <div id="inter-screen">
+        <div class="inter-content">
+            <div id="close-ad-btn" onclick="closeInterAd()">5</div>
+            <iframe id="ifr-inter" src="about:blank" style="width:100%; height:100%; border:none; border-radius:8px; background: #fff;"></iframe>
+        </div>
+    </div>
 
     <script>
-        const canvas = document.getElementById("gameCanvas");
-        const ctx = canvas.getContext("2d");
-        const gameOuter = document.getElementById("game-outer");
-        const menuScreen = document.getElementById("menuScreen");
-        const adMid = document.getElementById("ad-middle-container");
-        const goButton = document.getElementById("goButton");
-        const bestText = document.getElementById("bestScoreText");
+        const canvas = document.getElementById("gameCanvas"), ctx = canvas.getContext("2d"),
+              gameOuter = document.getElementById("game-outer"), menuScreen = document.getElementById("menuScreen"),
+              adMid = document.getElementById("ad-middle-box"), goButton = document.getElementById("goButton"),
+              bestText = document.getElementById("bestScoreText");
 
         let score = 0, bestScore = localStorage.getItem("pop_best") || 0, gameActive = false, balloons = [], playCount = 0;
-        const colors = ["#f44336", "#2196f3", "#ffeb3b", "#4caf50"]; 
-        const targetColor = "#f44336";
+        let spawnTimer;
+        const colors = ["#f44336", "#2196f3", "#ffeb3b", "#4caf50", "#9c27b0", "#ff9800"]; 
+        const targetColor = "#f44336"; // 赤
 
         function resize() { canvas.width = gameOuter.clientWidth; canvas.height = gameOuter.clientHeight; }
         window.addEventListener('resize', resize);
@@ -91,23 +93,31 @@
 
         bestText.innerText = "BEST: " + bestScore;
 
-        goButton.onclick = () => {
-            menuScreen.style.display = "none";
-            adMid.style.display = "none";
+        function startGame() {
+            menuScreen.style.display = "none"; adMid.style.display = "none";
             gameActive = true; score = 0; balloons = [];
-            document.getElementById("ui").innerText = "POPPED: 0";
+            document.getElementById("ui").innerText = "SCORE: 0";
             spawnBalloon(); update();
-        };
+        }
 
-        window.addEventListener("touchstart", (e) => {
+        // タップ判定：当たり判定を少し広く(r+20)して快適に
+        canvas.addEventListener("touchstart", (e) => {
             if(!gameActive) return; e.preventDefault();
             const rect = canvas.getBoundingClientRect();
             const tx = e.touches[0].clientX - rect.left, ty = e.touches[0].clientY - rect.top;
+            
             for(let i = balloons.length - 1; i >= 0; i--) {
                 let b = balloons[i];
-                if(Math.sqrt((tx - b.x)**2 + (ty - b.y)**2) < 50) {
-                    if(b.color === targetColor) { score++; document.getElementById("ui").innerText = "POPPED: " + score; balloons.splice(i, 1); }
-                    else { gameOver("それは赤じゃないよ！"); }
+                const dist = Math.hypot(tx - b.x, ty - b.y);
+                if(dist < b.r + 20) {
+                    if(b.color === targetColor) {
+                        score++;
+                        document.getElementById("ui").innerText = "SCORE: " + score;
+                        balloons.splice(i, 1);
+                        // 赤を割ったら少しだけスピードアップ
+                    } else {
+                        gameOver("それは赤じゃないよ！❌");
+                    }
                     return;
                 }
             }
@@ -115,70 +125,97 @@
 
         function spawnBalloon() {
             if(!gameActive) return;
-            balloons.push({ x: Math.random()*(canvas.width-60)+30, y: canvas.height+50, color: colors[Math.floor(Math.random()*colors.length)], speed: 2+Math.min(score/15, 5), r: 30 });
-            setTimeout(spawnBalloon, Math.max(300, 700 - (score * 5)));
+            const radius = 35;
+            balloons.push({
+                x: Math.random() * (canvas.width - radius * 2) + radius,
+                y: canvas.height + radius,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speed: 2.2 + Math.min(score / 12, 6),
+                r: radius
+            });
+            const nextSpawn = Math.max(250, 800 - (score * 8));
+            spawnTimer = setTimeout(spawnBalloon, nextSpawn);
         }
 
         function update() {
             if(!gameActive) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
             for(let i = balloons.length - 1; i >= 0; i--) {
-                let b = balloons[i]; b.y -= b.speed;
-                ctx.fillStyle = b.color; ctx.beginPath(); ctx.ellipse(b.x, b.y, b.r*0.8, b.r, 0, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = "#999"; ctx.beginPath(); ctx.moveTo(b.x, b.y+b.r); ctx.lineTo(b.x, b.y+b.r+15); ctx.stroke();
-                if(b.y < -50) { if(b.color === targetColor) { gameOver("赤い風船を逃した！"); } else { balloons.splice(i, 1); } }
+                let b = balloons[i];
+                b.y -= b.speed;
+                
+                // 風船の描画
+                ctx.save();
+                ctx.fillStyle = b.color;
+                ctx.beginPath();
+                ctx.ellipse(b.x, b.y, b.r * 0.85, b.r, 0, 0, Math.PI * 2);
+                ctx.fill();
+                // 紐
+                ctx.strokeStyle = "#777"; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.moveTo(b.x, b.y + b.r); ctx.lineTo(b.x, b.y + b.r + 20); ctx.stroke();
+                ctx.restore();
+
+                // 画面外（逃した）判定
+                if(b.y < -b.r) {
+                    if(b.color === targetColor) {
+                        gameOver("赤い風船を逃した！🎈🏃");
+                    } else {
+                        balloons.splice(i, 1);
+                    }
+                }
             }
-            requestAnimationFrame(update);
+            if(gameActive) requestAnimationFrame(update);
         }
 
         function gameOver(msg) {
             gameActive = false; playCount++;
-            if(score > bestScore) { bestScore = score; localStorage.setItem("pop_best", bestScore); bestText.innerText = "BEST: " + bestScore; }
+            clearTimeout(spawnTimer);
+            if(score > bestScore) {
+                bestScore = score;
+                localStorage.setItem("pop_best", bestScore);
+                bestText.innerText = "BEST: " + bestScore;
+            }
             
             goButton.innerText = "お待ちください...";
             goButton.disabled = true;
-            adMid.style.display = "flex"; adMid.style.pointerEvents = "none"; adMid.style.opacity = "0.4";
-            document.getElementById("menuTitle").innerText = "ミス！";
-            document.getElementById("menuDesc").innerText = msg + "\n記録: " + score;
+            adMid.style.display = "flex";
+            document.getElementById("menuTitle").innerText = "GAME OVER";
+            document.getElementById("menuDesc").innerHTML = msg + "<br>今回のスコア: " + score;
             menuScreen.style.display = "flex";
 
+            // 誤クリック防止＆広告ロード時間
             setTimeout(() => {
-                adMid.style.pointerEvents = "auto"; adMid.style.opacity = "1";
-                goButton.disabled = false; goButton.innerText = "リトライ！";
+                goButton.disabled = false;
+                goButton.innerText = "リトライ！";
             }, 1500);
 
-            if (playCount === 3 || (playCount > 3 && (playCount - 3) % 7 === 0)) {
-                setTimeout(showBigAd, 500);
+            // インタースティシャル（7回毎）
+            if (playCount % 7 === 0) {
+                setTimeout(showInterAd, 500);
             }
         }
 
-        function showBigAd() {
-            const screen = document.getElementById("bigAdScreen");
-            const closeBtn = document.getElementById("ad-close-btn");
-            document.getElementById("ad-large-frame").src = "./ad.large.html?t=" + Date.now();
+        function showInterAd() {
+            const screen = document.getElementById("inter-screen"), closeBtn = document.getElementById("close-ad-btn"), ifr = document.getElementById('ifr-inter');
+            ifr.src = './ad.large.html?v=' + Date.now();
             screen.style.display = "flex";
-            
-            let timeLeft = 5;
-            closeBtn.style.display = "flex";
-            closeBtn.innerText = timeLeft;
-            closeBtn.style.pointerEvents = "none";
-            closeBtn.style.opacity = "0.7";
-
-            const timer = setInterval(() => {
-                timeLeft--;
-                closeBtn.innerText = timeLeft;
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
+            let timerVal = 5;
+            closeBtn.innerText = timerVal; closeBtn.style.pointerEvents = "none";
+            const countdown = setInterval(() => {
+                timerVal--;
+                if (timerVal > 0) closeBtn.innerText = timerVal;
+                else {
+                    clearInterval(countdown);
                     closeBtn.innerText = "×";
                     closeBtn.style.pointerEvents = "auto";
-                    closeBtn.style.opacity = "1";
                 }
             }, 1000);
         }
 
-        function closeBigAd() {
-            document.getElementById("bigAdScreen").style.display = "none";
-            document.getElementById("ad-large-frame").src = "";
+        function closeInterAd() {
+            document.getElementById("inter-screen").style.display = "none";
+            document.getElementById('ifr-inter').src = 'about:blank';
         }
     </script>
 </body>
